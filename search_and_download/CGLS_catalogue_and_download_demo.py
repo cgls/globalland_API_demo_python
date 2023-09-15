@@ -27,12 +27,18 @@
 
 # Let's start with installing the Python catalogue client from the python package repository:
 
-# pip3 install --user --quiet --index-url=https://artifactory.vgt.vito.be/api/pypi/python-packages/simple terracatalogueclient==0.1.16'
+# In[1]:
+
+
+get_ipython().system('python3 -m pip install --user --quiet --index-url=https://artifactory.vgt.vito.be/api/pypi/python-packages/simple terracatalogueclient==0.1.16')
 
 
 # On the Terrascope virtual machines and Jupyter notebook environment, the catalogue client package is pre-installed for your convenience.
 
 # Next, we import some required packages and initialize the catalogue client.
+
+# In[2]:
+
 
 from terracatalogueclient import Catalogue
 from terracatalogueclient.config import CatalogueConfig, CatalogueEnvironment
@@ -40,6 +46,9 @@ from terracatalogueclient.config import CatalogueConfig, CatalogueEnvironment
 
 # Copy the configuration file from the Github repository to the same folder.
 # Then use it to configure the catalogue client to query Global Land's catalogue.
+
+# In[3]:
+
 
 config = CatalogueConfig.from_environment(CatalogueEnvironment.CGLS)
 catalogue = Catalogue(config)
@@ -49,6 +58,9 @@ catalogue = Catalogue(config)
 
 # The get_collections() call can be used to discover which collections of Global Land products.
 # At this moment, only the products for the daily Burnt Area v3.1.1 collection are available. All other Global Land collections will be added to this API.
+
+# In[4]:
+
 
 import pandas as pd
 collections = catalogue.get_collections()
@@ -67,6 +79,9 @@ df.style.set_properties(**{'text-align': 'left'})
 # 
 # The get_products() call supports filtering time period that the product covers (start/end parameters), or date when the file was last updated (modificationDate)
 
+# In[5]:
+
+
 import pandas as pd
 import datetime as dt
 
@@ -74,7 +89,7 @@ rows = []
 products = catalogue.get_products(
     "clms_global_ba_300m_v3_daily_netcdf",
     start=dt.date(2023, 9, 1),
-    end=dt.date(2023, 9, 10),
+    end=dt.date(2023, 9, 3),
 )
 for product in products:
     rows.append([product.id, product.data[0].href, (product.data[0].length/(1024*1024))])
@@ -95,10 +110,13 @@ df.style.set_properties(**{'text-align': 'left'})
 # If you want to be able to iterate over the results more than once, you can convert it to a list.
 # Keep in mind that such a conversion loads all results in memory. If the number of products found is very high (e.g. hourly LST has tens of thousands of files), then the list can take up a lot of the memory.
 
+# In[6]:
+
+
 product_list = list(catalogue.get_products(
     "clms_global_ba_300m_v3_daily_netcdf",
-    start=dt.date(2023, 6, 26),
-    end=dt.date(2023, 6, 30),
+    start=dt.date(2023, 9, 1),
+    end=dt.date(2023, 9, 3),
 ))
 
 
@@ -106,14 +124,21 @@ product_list = list(catalogue.get_products(
 # 
 # Depending on the connection speed and data volume, this can take a few minutes.
 
+# In[7]:
+
+
 catalogue.download_products(product_list, './')
+
 
 # Finally, let's check if the data files are downloaded.
 # 
 # The download_products() call stores the downloaded files in folders, named after the product identifier.
 
+# In[8]:
+
+
 import os
-os.listdir('./c_gls_BA300-NRT_202306260000_GLOBE_S3_V3.1.1/')
+os.listdir('./c_gls_BA300-NRT_202309010000_GLOBE_S3_V3.1.1/')
 
 
 # **Note**
