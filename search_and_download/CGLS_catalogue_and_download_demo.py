@@ -27,7 +27,7 @@
 
 # Let's start with installing the Python catalogue client from the python package repository:
 
-#pip3 install --user --quiet --index-url=https://artifactory.vgt.vito.be/api/pypi/python-packages/simple terracatalogueclient==0.1.14'
+# pip3 install --user --quiet --index-url=https://artifactory.vgt.vito.be/api/pypi/python-packages/simple terracatalogueclient==0.1.16'
 
 
 # On the Terrascope virtual machines and Jupyter notebook environment, the catalogue client package is pre-installed for your convenience.
@@ -35,13 +35,13 @@
 # Next, we import some required packages and initialize the catalogue client.
 
 from terracatalogueclient import Catalogue
-from terracatalogueclient.config import CatalogueConfig
+from terracatalogueclient.config import CatalogueConfig, CatalogueEnvironment
 
 
 # Copy the configuration file from the Github repository to the same folder.
 # Then use it to configure the catalogue client to query Global Land's catalogue.
 
-config = CatalogueConfig.from_file("terracatalog_config_GlobalLand.txt")
+config = CatalogueConfig.from_environment(CatalogueEnvironment.CGLS)
 catalogue = Catalogue(config)
 
 
@@ -63,7 +63,7 @@ df.style.set_properties(**{'text-align': 'left'})
 
 # #### Search products <a class="anchor" id="search-products"></a>
 
-# Using the above collection identifier, let's search for the available burnt area products.
+# Using one of the above collection identifiers, let's search for the available daily burnt area products.
 # 
 # The get_products() call supports filtering time period that the product covers (start/end parameters), or date when the file was last updated (modificationDate)
 
@@ -73,8 +73,8 @@ import datetime as dt
 rows = []
 products = catalogue.get_products(
     "clms_global_ba_300m_v3_daily_netcdf",
-    start=dt.date(2023, 6, 26),
-    end=dt.date(2023, 6, 30),
+    start=dt.date(2023, 9, 1),
+    end=dt.date(2023, 9, 10),
 )
 for product in products:
     rows.append([product.id, product.data[0].href, (product.data[0].length/(1024*1024))])
@@ -93,7 +93,7 @@ df.style.set_properties(**{'text-align': 'left'})
 # 
 # Note that the above get_products() call returns a Python generator! 
 # If you want to be able to iterate over the results more than once, you can convert it to a list.
-# Mind that this will load all results in memory, which could be huge depending on the number of results returned!
+# Keep in mind that such a conversion loads all results in memory. If the number of products found is very high (e.g. hourly LST has tens of thousands of files), then the list can take up a lot of the memory.
 
 product_list = list(catalogue.get_products(
     "clms_global_ba_300m_v3_daily_netcdf",
@@ -108,10 +108,18 @@ product_list = list(catalogue.get_products(
 
 catalogue.download_products(product_list, './')
 
-
 # Finally, let's check if the data files are downloaded.
 # 
 # The download_products() call stores the downloaded files in folders, named after the product identifier.
 
-#import os
-#os.listdir('./c_gls_BA300-NRT_202306260000_GLOBE_S3_V3.1.1/')
+import os
+os.listdir('./c_gls_BA300-NRT_202306260000_GLOBE_S3_V3.1.1/')
+
+
+# **Note**
+# 
+# This demo is designed to download a small set of files, directly to the (limited) workspace of this notebook.
+# 
+# To download larger sets of files
+# * download this code as a stand-alone Python script (CGLS_catalogue_and_download.py), modify it and run it e.g. on your computer or your [Terrascope Virtual Machine](https://terrascope.be/en/services)
+# * or save the list of URLs as a text file and provide that as input to download tools like [WinWget](https://winwget.sourceforge.net/), command-line [wget](https://www.gnu.org/software/wget/) or [curl](https://curl.se/)
